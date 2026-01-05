@@ -18,8 +18,7 @@ class UpdateTodoRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'is_completed' => ['required', 'boolean'],
-        ];
+        // トグル処理はコントローラー側で行うため、バリデーションは空
+        return [];
     }
 }

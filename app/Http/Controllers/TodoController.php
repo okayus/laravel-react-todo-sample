@@ -39,7 +39,10 @@ class TodoController extends Controller
             abort(404);
         }
 
-        $this->todoRepository->update($id, $request->validated());
+        // is_completedをトグル
+        $this->todoRepository->update($id, [
+            'is_completed' => !$todo->is_completed,
+        ]);
 
         return redirect('/');
     }
