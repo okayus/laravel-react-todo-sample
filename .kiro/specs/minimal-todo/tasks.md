@@ -119,10 +119,11 @@
 
 ## Phase 4: 統合と仕上げ
 
-- [ ] 12. ルーティング設定
+- [x] 12. ルーティング設定
   - web.phpにTodoControllerのルート追加
   - ルート名の設定（todos.store, todos.update, todos.destroy）
   - _Requirements: 1.1, 2.1, 3.1, 4.1_
+  - _Note: タスク6で実装済み_
 
 - [ ] 13. 動作確認と最終調整
   - docker compose upでの起動確認
