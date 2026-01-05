@@ -8,7 +8,7 @@
 
 ## Phase 1: 基盤構築
 
-- [ ] 1. プロジェクト初期化とGitHubリポジトリ作成
+- [x] 1. プロジェクト初期化とGitHubリポジトリ作成
   - Laravelプロジェクトを新規作成（Breeze + React + TypeScript）
   - PestPHPをインストール・設定
   - Vitestをインストール・設定
@@ -25,15 +25,15 @@
   - _Requirements: 6.1, 6.2, 6.3_
   - _Note: デプロイステップは後で追加_
 
-- [ ] 3. Docker Compose開発環境構築
-- [ ] 3.1 Nginx + PHP-FPM + MySQLコンテナ設定
+- [x] 3. Docker Compose開発環境構築
+- [x] 3.1 Nginx + PHP-FPM + MySQLコンテナ設定
   - Nginx設定ファイル作成（Laravel用）
   - PHP-FPM Dockerfile作成（PHP 8.3、必要な拡張）
   - MySQLコンテナ追加（ローカル開発用）
   - docker-compose.yml作成
   - _Requirements: 5.1, 5.2_
 
-- [ ] 3.2 Vite開発サーバー統合
+- [x] 3.2 Vite開発サーバー統合
   - Viteのホットリロードをdocker環境で動作させる設定
   - vite.config.tsのhost設定調整
   - _Requirements: 5.3_
