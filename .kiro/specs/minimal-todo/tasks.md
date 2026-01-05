@@ -76,12 +76,13 @@
   - 存在しないTODOの404処理
   - _Requirements: 4.1, 4.2_
 
-- [ ] 7. バックエンドテスト（PestPHP）
+- [x] 7. バックエンドテスト（PestPHP）
   - TODO作成テスト（正常系・バリデーションエラー）
   - TODO一覧表示テスト
   - TODO完了トグルテスト
   - TODO削除テスト
   - _Requirements: 1.1, 1.2, 1.3, 2.1, 3.1, 3.2, 4.1, 4.2_
+  - _Note: タスク6のTodoControllerTest.phpで実装済み_
 
 ## Phase 3: フロントエンド実装
 
