@@ -46,7 +46,7 @@
   - モデルファクトリ作成（テスト用）
   - _Requirements: 1.1, 2.2, 3.1, 4.1_
 
-- [ ] 5. リポジトリパターン導入
+- [x] 5. リポジトリパターン導入
   - TodoRepositoryInterfaceを作成
   - EloquentTodoRepository実装（MySQL/TiDB共通）
   - ServiceProviderでバインディング設定
