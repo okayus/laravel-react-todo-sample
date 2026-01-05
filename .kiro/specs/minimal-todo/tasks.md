@@ -105,7 +105,7 @@
   - 完了時の取り消し線スタイル
   - _Requirements: 2.2, 3.1, 3.3, 4.1_
 
-- [ ] 10. Indexページ実装
+- [x] 10. Indexページ実装
   - TodoFormとTodoItemの統合
   - useFormによるフォーム状態管理
   - router.post/patch/deleteによるAPI呼び出し
