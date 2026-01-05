@@ -16,7 +16,7 @@
   - .gitignore、.editorconfig等の基本設定
   - _Requirements: 5.1_
 
-- [ ] 2. CI基盤構築（GitHub Actions）
+- [x] 2. CI基盤構築（GitHub Actions）
   - GitHub Actionsワークフローファイルを作成
   - PestPHP実行ステップを追加
   - Vitest実行ステップを追加
