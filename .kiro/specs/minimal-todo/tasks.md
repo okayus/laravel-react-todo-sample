@@ -53,25 +53,25 @@
   - _Requirements: 7.3_
   - _Note: DB切り替え可能な設計を実現_
 
-- [ ] 6. TodoController実装
-- [ ] 6.1 一覧表示アクション（index）
+- [x] 6. TodoController実装
+- [x] 6.1 一覧表示アクション（index）
   - リポジトリ経由で全TODO取得
   - Inertiaでページ返却
   - 空リスト時の処理
   - _Requirements: 2.1, 2.2, 2.3_
 
-- [ ] 6.2 作成アクション（store）
+- [x] 6.2 作成アクション（store）
   - リクエストバリデーション（タイトル必須）
   - リポジトリ経由でTODO保存
   - バリデーションエラー時のエラー返却
   - _Requirements: 1.1, 1.2, 1.3_
 
-- [ ] 6.3 (P) 完了切り替えアクション（update）
+- [x] 6.3 (P) 完了切り替えアクション（update）
   - is_completedのトグル処理
   - 存在しないTODOの404処理
   - _Requirements: 3.1, 3.2_
 
-- [ ] 6.4 (P) 削除アクション（destroy）
+- [x] 6.4 (P) 削除アクション（destroy）
   - TODO削除処理
   - 存在しないTODOの404処理
   - _Requirements: 4.1, 4.2_
