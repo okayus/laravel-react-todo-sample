@@ -93,11 +93,11 @@ jobs:
       - name: Run migrations
         run: php artisan migrate --force
 
+      - name: Build frontend
+        run: pnpm build
+
       - name: Run PestPHP tests
         run: ./vendor/bin/pest
 
       - name: Run Vitest tests
         run: pnpm test:run
-
-      - name: Build frontend
-        run: pnpm build
