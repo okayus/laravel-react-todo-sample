@@ -32,11 +32,9 @@
 
 ## 2. プロジェクト作成（Docker版）
 
-### 方法A: Dockerでプロジェクト作成（推奨）
-
 ホストにPHP/Composerがなくても、Dockerで新規プロジェクトを作成できます。
 
-#### Step 2.1: 作業ディレクトリを作成
+### Step 2.1: ディレクトリとDocker環境を先に作成
 
 ```bash
 cd ~/dev
@@ -44,41 +42,102 @@ mkdir my-todo-app
 cd my-todo-app
 ```
 
-#### Step 2.2: 最小限のDocker環境を先に作成
+**最初に完全なdocker-compose.ymlを作成**します（参照元のファイルをコピー）。
 
-まず、PHPコンテナを動かすための最小構成を作成します。
-
-**docker-compose.yml**（一時的な最小構成）:
+これにより、以降はすべて `docker compose exec` で統一できます。
 
 ```yaml
+# docker-compose.yml
 services:
-  php:
-    image: php:8.4-cli
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
     volumes:
       - .:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - php
+    networks:
+      - app-network
+
+  php:
+    build:
+      context: ./docker/php
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    volumes:
+      - .:/var/www/html
+    networks:
+      - app-network
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: laravel
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: secret
+    volumes:
+      - mysql-data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - app-network
+
+  node:
+    image: node:20-alpine
     working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    ports:
+      - "5173:5173"
+    command: sh -c "corepack enable && corepack prepare pnpm@latest --activate && pnpm dev --host"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
 ```
 
-#### Step 2.3: Composerでプロジェクト作成
+**docker/php/Dockerfile** と **docker/nginx/default.conf** も作成（参照元からコピー）。
+
+### Step 2.2: Laravelプロジェクト作成
 
 ```bash
-# Composer公式イメージで Laravel プロジェクトを作成
+# Composer公式イメージでLaravelを作成（1回だけ）
 docker run --rm -v $(pwd):/app composer create-project laravel/laravel .
 ```
 
-**解説**:
-- `--rm`: コンテナ終了後に自動削除
-- `-v $(pwd):/app`: カレントディレクトリをコンテナ内にマウント
-- `composer create-project laravel/laravel .`: カレントディレクトリにLaravelを作成
-
-#### Step 2.4: Breezeインストール（React + TypeScript）
+### Step 2.3: コンテナ起動
 
 ```bash
-# Breezeをインストール
-docker run --rm -v $(pwd):/app composer require laravel/breeze --dev
+# PHPコンテナをビルドして起動
+docker compose up -d php mysql
+```
 
-# PHPコンテナでartisanを実行（Breezeのスキャフォールド）
-docker run --rm -v $(pwd):/var/www/html -w /var/www/html php:8.4-cli php artisan breeze:install react --typescript
+### Step 2.4: 以降はすべて `docker compose exec`
+
+```bash
+# Breezeインストール
+docker compose exec php composer require laravel/breeze --dev
+
+# React + TypeScript でスキャフォールド
+docker compose exec php php artisan breeze:install react --typescript
+
+# Ziggyインストール
+docker compose exec php composer require tightenco/ziggy
+
+# .envファイル設定
+docker compose exec php cp .env.example .env
+docker compose exec php php artisan key:generate
 ```
 
 **このコマンドで自動生成されるもの**:
@@ -87,21 +146,14 @@ docker run --rm -v $(pwd):/var/www/html -w /var/www/html php:8.4-cli php artisan
 - Tailwind CSS設定
 - Vite設定
 
-#### Step 2.5: 追加パッケージのインストール
+### Step 2.5: フロントエンド環境
 
 ```bash
-# Ziggy（LaravelルートをJSで使用）
-docker run --rm -v $(pwd):/app composer require tightenco/ziggy
-```
-
-#### Step 2.6: Node.jsパッケージのインストール
-
-```bash
-# Node公式イメージでnpmパッケージをインストール
-docker run --rm -v $(pwd):/app -w /app node:20-alpine sh -c "corepack enable && pnpm install"
+# Nodeコンテナでパッケージインストール
+docker compose run --rm node sh -c "corepack enable && pnpm install"
 
 # テストライブラリを追加
-docker run --rm -v $(pwd):/app -w /app node:20-alpine sh -c "corepack enable && pnpm add -D vitest @testing-library/react @testing-library/jest-dom jsdom"
+docker compose run --rm node sh -c "corepack enable && pnpm add -D vitest @testing-library/react @testing-library/jest-dom jsdom"
 ```
 
 **package.jsonに追加するスクリプト**:
@@ -115,9 +167,34 @@ docker run --rm -v $(pwd):/app -w /app node:20-alpine sh -c "corepack enable && 
 }
 ```
 
+### Step 2.6: データベースセットアップ
+
+```bash
+# マイグレーション実行
+docker compose exec php php artisan migrate
+```
+
+### Step 2.7: 全コンテナ起動
+
+```bash
+docker compose up -d
+```
+
 ---
 
-### 方法B: ホストにComposerをインストールする場合
+### コマンド比較
+
+| 操作 | 毎回docker run | docker compose exec |
+|------|---------------|---------------------|
+| Composerコマンド | `docker run --rm -v $(pwd):/app composer ...` | `docker compose exec php composer ...` |
+| Artisanコマンド | `docker run --rm -v $(pwd):/var/www/html -w /var/www/html php:8.4-cli php artisan ...` | `docker compose exec php php artisan ...` |
+| pnpmコマンド | `docker run --rm -v $(pwd):/app -w /app node:20-alpine sh -c "corepack enable && pnpm ..."` | `docker compose run --rm node sh -c "corepack enable && pnpm ..."` |
+
+**結論**: 最初にdocker-compose.ymlを作成しておけば、以降は短いコマンドで済む。
+
+---
+
+### 補足: ホストにComposerをインストールする場合
 
 ホストマシンでの開発が好みの場合：
 
