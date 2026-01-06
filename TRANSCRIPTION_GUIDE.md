@@ -26,41 +26,59 @@
 | Docker Compose | 2.0+ | `docker compose version` |
 | Git | 2.30+ | `git --version` |
 
-### オプション（Dockerなしで開発する場合）
-
-| ソフトウェア | バージョン | 確認コマンド |
-|-------------|-----------|-------------|
-| PHP | 8.2+ | `php --version` |
-| Composer | 2.0+ | `composer --version` |
-| Node.js | 20+ | `node --version` |
-| pnpm/npm | 最新 | `pnpm --version` |
-| MySQL | 8.0 | `mysql --version` |
+**ホストマシンにPHP/Composer/Node.jsは不要！** すべてDockerコンテナ内で実行します。
 
 ---
 
-## 2. プロジェクト作成
+## 2. プロジェクト作成（Docker版）
 
-### Step 2.1: Laravelプロジェクト作成
+### 方法A: Dockerでプロジェクト作成（推奨）
+
+ホストにPHP/Composerがなくても、Dockerで新規プロジェクトを作成できます。
+
+#### Step 2.1: 作業ディレクトリを作成
 
 ```bash
-# 作業ディレクトリに移動
 cd ~/dev
-
-# Laravelプロジェクト作成
-composer create-project laravel/laravel my-todo-app
-
-# プロジェクトに移動
+mkdir my-todo-app
 cd my-todo-app
 ```
 
-### Step 2.2: Laravel Breezeインストール（React + TypeScript）
+#### Step 2.2: 最小限のDocker環境を先に作成
+
+まず、PHPコンテナを動かすための最小構成を作成します。
+
+**docker-compose.yml**（一時的な最小構成）:
+
+```yaml
+services:
+  php:
+    image: php:8.4-cli
+    volumes:
+      - .:/var/www/html
+    working_dir: /var/www/html
+```
+
+#### Step 2.3: Composerでプロジェクト作成
+
+```bash
+# Composer公式イメージで Laravel プロジェクトを作成
+docker run --rm -v $(pwd):/app composer create-project laravel/laravel .
+```
+
+**解説**:
+- `--rm`: コンテナ終了後に自動削除
+- `-v $(pwd):/app`: カレントディレクトリをコンテナ内にマウント
+- `composer create-project laravel/laravel .`: カレントディレクトリにLaravelを作成
+
+#### Step 2.4: Breezeインストール（React + TypeScript）
 
 ```bash
 # Breezeをインストール
-composer require laravel/breeze --dev
+docker run --rm -v $(pwd):/app composer require laravel/breeze --dev
 
-# React + TypeScript + Inertia.jsでスキャフォールド
-php artisan breeze:install react --typescript
+# PHPコンテナでartisanを実行（Breezeのスキャフォールド）
+docker run --rm -v $(pwd):/var/www/html -w /var/www/html php:8.4-cli php artisan breeze:install react --typescript
 ```
 
 **このコマンドで自動生成されるもの**:
@@ -69,21 +87,21 @@ php artisan breeze:install react --typescript
 - Tailwind CSS設定
 - Vite設定
 
-### Step 2.3: 追加パッケージのインストール
+#### Step 2.5: 追加パッケージのインストール
 
 ```bash
 # Ziggy（LaravelルートをJSで使用）
-composer require tightenco/ziggy
-
-# Inertia.js Laravel（自動で入るが念のため）
-composer require inertiajs/inertia-laravel
+docker run --rm -v $(pwd):/app composer require tightenco/ziggy
 ```
 
-### Step 2.4: フロントエンドテスト環境
+#### Step 2.6: Node.jsパッケージのインストール
 
 ```bash
-# Vitestと Testing Libraryをインストール
-pnpm add -D vitest @testing-library/react @testing-library/jest-dom jsdom
+# Node公式イメージでnpmパッケージをインストール
+docker run --rm -v $(pwd):/app -w /app node:20-alpine sh -c "corepack enable && pnpm install"
+
+# テストライブラリを追加
+docker run --rm -v $(pwd):/app -w /app node:20-alpine sh -c "corepack enable && pnpm add -D vitest @testing-library/react @testing-library/jest-dom jsdom"
 ```
 
 **package.jsonに追加するスクリプト**:
@@ -95,6 +113,28 @@ pnpm add -D vitest @testing-library/react @testing-library/jest-dom jsdom
     "test:run": "vitest run"
   }
 }
+```
+
+---
+
+### 方法B: ホストにComposerをインストールする場合
+
+ホストマシンでの開発が好みの場合：
+
+```bash
+# Ubuntu/Debian
+sudo apt update
+sudo apt install php php-cli php-mbstring php-xml php-curl unzip
+curl -sS https://getcomposer.org/installer | php
+sudo mv composer.phar /usr/local/bin/composer
+
+# Laravelプロジェクト作成
+composer create-project laravel/laravel my-todo-app
+cd my-todo-app
+
+# Breeze インストール
+composer require laravel/breeze --dev
+php artisan breeze:install react --typescript
 ```
 
 ---
