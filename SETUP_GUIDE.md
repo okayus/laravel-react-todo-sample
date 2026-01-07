@@ -42,11 +42,13 @@ cd my-laravel-todo
 ### Step 2: Laravelプロジェクト作成
 
 ```bash
-# Composer公式イメージでLaravelを作成
-docker run --rm -v $(pwd):/app composer create-project laravel/laravel
+# Composer公式イメージでLaravelを作成（--userで権限問題を回避）
+docker run --rm --user $(id -u):$(id -g) -v $(pwd):/app composer create-project laravel/laravel
 ```
 
-**ポイント**: 末尾に `.` を付けない。`laravel/` サブディレクトリが作成される。
+**ポイント**:
+- 末尾に `.` を付けない → `laravel/` サブディレクトリが作成される
+- `--user $(id -u):$(id -g)` → ホストユーザーの権限でファイル作成（root所有を防ぐ）
 
 ### Step 3: 中身をカレントディレクトリに移動
 
@@ -54,6 +56,15 @@ docker run --rm -v $(pwd):/app composer create-project laravel/laravel
 # laravel/ の中身を移動
 mv laravel/* .
 mv laravel/.* . 2>/dev/null  # 隠しファイルも移動（エラーは無視）
+rmdir laravel
+```
+
+**もしPermission deniedエラーが出たら**:
+```bash
+# 所有者を自分に変更してから移動
+sudo chown -R $(id -u):$(id -g) laravel/
+mv laravel/* .
+mv laravel/.* . 2>/dev/null
 rmdir laravel
 ```
 
